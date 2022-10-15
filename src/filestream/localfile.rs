@@ -36,10 +36,7 @@ pub fn new_local_file_chunker(path : PathBuf, chunk_size : u64) -> Result<LocalF
         return Err("chunk size must not be zero".to_string());
     }
 
-    let mut f = match File::open(path) {
-        Ok(f) => f,
-        Err(e) => return Err(e.to_string()),
-    };
+    let mut f = File::open(path).or_else(|e| Err(e.to_string()))?;
 
     Ok(LocalFileChunker{
         file: f,
