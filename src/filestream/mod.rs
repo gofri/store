@@ -1,5 +1,6 @@
+use std::error::Error;
 use std::fs::File;
-use std::io::{Result, Seek, Read};
+use std::io::{Result, Seek, Read, ErrorKind};
 use std::path::{Path, PathBuf};
 use std::ptr::read;
 use std::string;
@@ -13,11 +14,14 @@ pub struct FileChunker {
     pub chunk_size : u64,
 }
 
+fn custom_io_error(err : &str) -> std::io::Error {
+    std::io::Error::new(ErrorKind::Other, err)
+}
+
 pub fn new_chunk_reader(path : PathBuf, chunk_size : u64) -> Result<FileChunker> {
     let mut f = File::open(path)?;
     if chunk_size == 0 {
-        // return Err("chunk size must not be zero")
-        // TODO how to return err
+        return Err(custom_io_error("chunk size must not be zero"));
     }
     Ok(FileChunker{
         file: f,
