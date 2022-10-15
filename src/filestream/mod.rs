@@ -9,7 +9,7 @@ pub trait ChunkReader {
     fn read_chunk(&mut self, index: u64, buf: &mut [u8]) -> Result<usize>;
 }
 
-pub struct LocalFileChunker {
+struct LocalFileChunker {
     file : File,
     pub chunk_size : u64,
 }
@@ -18,7 +18,7 @@ fn custom_io_error(err : &str) -> std::io::Error {
     std::io::Error::new(ErrorKind::Other, err)
 }
 
-pub fn new_chunk_reader(path : PathBuf, chunk_size : u64) -> Result<LocalFileChunker> {
+pub fn new_chunk_reader(path : PathBuf, chunk_size : u64) -> Result<impl ChunkReader> {
     let mut f = File::open(path)?;
     if chunk_size == 0 {
         return Err(custom_io_error("chunk size must not be zero"));
