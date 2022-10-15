@@ -5,7 +5,7 @@ use std::str;
 
 use clap::Parser;
 
-use crate::filestream::{FileChunker, ChunkReader, new_chunk_reader};
+use crate::filestream::{LocalFileChunker, ChunkReader, new_chunk_reader};
 mod filestream;
 
 /// Search for a pattern in a file and display the lines that contain it.
