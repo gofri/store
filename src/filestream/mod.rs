@@ -38,7 +38,7 @@ impl FileChunker {
 
 impl ChunkReader for FileChunker {
     fn read_chunk(&mut self, index: u64, buf: &mut [u8]) -> Result<usize> {
-        self.seek_index(index);
+        self.seek_index(index)?;
         let chunked_buf = &mut buf[0..self.chunk_size as usize]; 
         self.file.read(chunked_buf)
     }
