@@ -33,7 +33,7 @@ fn main() {
             break;
         }
         let u = uploader::new(i);
-        u.upload(&buf).unwrap();
+        println!("uploaded: {:?}", u.upload(&buf).unwrap());
 
         i += 1;
     }
