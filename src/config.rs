@@ -8,7 +8,9 @@ fn get_builder() -> Result<ConfigBuilder<DefaultState>, ConfigError> {
     if !std::path::Path::new(config_source).exists() {
         info!("missing configuration file at {}, creating an empty one", config_source);
         std::fs::File::create(config_source)
-            .map_err(|e| ConfigError::NotFound(e.to_string()))?;
+            .map_err(|e| ConfigError::NotFound(
+                std::fmt::format(format_args!("failed to create config file: {}", e.to_string())))
+            )?;
     }
     Config::builder()
         .add_source(File::new(config_source, FileFormat::Yaml))
