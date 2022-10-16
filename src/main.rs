@@ -1,6 +1,3 @@
-#![allow(unused)]
-
-use std::path::{Path, PathBuf};
 use std::str;
 
 use clap::Parser;

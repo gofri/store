@@ -1,7 +1,7 @@
 use std::fs::File;
-use std::io::{Seek, Read, ErrorKind};
+use std::io::{Seek, Read};
 use std::io::Result as StdResult;
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
 
 pub struct LocalFileChunker {
     file : File,
@@ -27,16 +27,12 @@ impl super::ChunkReader for LocalFileChunker {
     }
 }
 
-fn custom_io_error(err : &str) -> std::io::Error {
-    std::io::Error::new(ErrorKind::Other, err)
-}
-
 pub fn new_local_file_chunker(path : PathBuf, chunk_size : u64) -> Result<LocalFileChunker, String> {
     if chunk_size == 0 {
         return Err("chunk size must not be zero".to_string());
     }
 
-    let mut f = File::open(path).or_else(|e| Err(e.to_string()))?;
+    let f = File::open(path).or_else(|e| Err(e.to_string()))?;
 
     Ok(LocalFileChunker{
         file: f,
