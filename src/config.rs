@@ -1,4 +1,4 @@
-use std;
+
 use log::info;
 
 use config::{Config, FileFormat, File, ConfigBuilder, builder::DefaultState, ConfigError};
@@ -9,7 +9,7 @@ fn get_builder() -> Result<ConfigBuilder<DefaultState>, ConfigError> {
         info!("missing configuration file at {}, creating an empty one", config_source);
         std::fs::File::create(config_source)
             .map_err(|e| ConfigError::NotFound(
-                std::fmt::format(format_args!("failed to create config file: {}", e.to_string())))
+                std::fmt::format(format_args!("failed to create config file: {}", e)))
             )?;
     }
     Config::builder()
