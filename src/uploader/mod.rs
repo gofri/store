@@ -5,5 +5,5 @@ pub trait ChunkUploader {
 mod local_uploader;
 
 pub fn new(index: u64) -> impl ChunkUploader {
-    return local_uploader::new(index);
+    local_uploader::new(index)
 }

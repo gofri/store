@@ -9,7 +9,7 @@ struct LocalUploader {
 
 impl super::ChunkUploader for LocalUploader {
     fn upload(&self, buf: &[u8]) -> Result<serde_yaml::Value, String> {
-        println!("read bytes: {}", str::from_utf8(&buf).unwrap());
+        println!("read bytes: {}", str::from_utf8(buf).unwrap());
         serde_yaml::to_value(self).map_err(|e| e.to_string())
     }
 }
