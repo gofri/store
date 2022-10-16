@@ -1,5 +1,3 @@
-use std::str;
-
 use clap::Parser;
 
 mod filestream;
@@ -7,6 +5,9 @@ use crate::filestream::{new_chunk_reader, ChunkReader};
 
 mod config;
 use crate::config::get_config;
+
+mod uploader;
+use crate::uploader::ChunkUploader;
 
 /// Search for a pattern in a file and display the lines that contain it.
 #[derive(Parser)]
@@ -31,7 +32,9 @@ fn main() {
         if s == 0 {
             break;
         }
-        println!("read {} bytes: {}", s, str::from_utf8(&buf).unwrap());
+        let u = uploader::new(i);
+        u.upload(&buf).unwrap();
+
         i += 1;
     }
 }
