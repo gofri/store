@@ -25,7 +25,7 @@ fn main() {
     let chunk_size = config.unwrap().get_int("chunk_size").unwrap() as u64;
     let mut cr = new_chunk_reader(args.path, chunk_size).unwrap();
     for i in 1..10 {
-        let mut buf = [0u8; 1000];
+        let mut buf = vec![0u8; chunk_size as usize];
         let s = cr.read_chunk(i, &mut buf).unwrap();
         println!("read {} bytes: {}", s, str::from_utf8(&buf).unwrap());
     }
