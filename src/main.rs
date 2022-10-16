@@ -3,7 +3,7 @@ use std::str;
 use clap::Parser;
 
 mod filestream;
-use crate::filestream::{ChunkReader, new_chunk_reader};
+use crate::filestream::{new_chunk_reader, ChunkReader};
 
 mod config;
 use crate::config::get_config;
