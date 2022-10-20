@@ -8,9 +8,9 @@ pub trait ChunkReader {
     fn read_chunk(&self, index: u64, buf: &mut [u8]) -> StdResult<usize>;
 }
 
-pub fn new_chunk_reader<'a>(
-    path: &'a Path,
+pub fn new_chunk_reader(
+    path: &Path,
     chunk_size: u64,
-) -> Result<impl ChunkReader + 'a, String> {
+) -> Result<impl ChunkReader + '_, String> {
     new_local_file_chunker(path, chunk_size)
 }

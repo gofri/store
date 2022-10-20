@@ -3,23 +3,17 @@ use std::path;
 mod default;
 use self::default::new_default_chunk_splitter;
 
-pub trait BufReader<'a> {
-    fn read(&'a mut self) -> Result<bytes::Bytes, String>;
+pub trait BufReader {
+    fn read(&mut self) -> Result<bytes::Bytes, String>;
 }
 
-#[derive(Debug)]
-pub enum ReadRes {
-    Eof,
-}
-
-pub trait ChunkSplitter<'a> {
-    fn next_reader(&'a self) -> Result<Box<dyn BufReader + 'a>, ReadRes>;
+pub trait ChunkSplitter<'a> : Iterator<Item=Box<dyn BufReader + 'a>> {
     fn total_size(&self) -> u64;
 }
 
-pub fn new_chunk_splitter<'a>(
+pub fn new_chunk_splitter<'a, 'b>(
     path: &'a path::Path,
     chunk_size: u64,
-) -> Result<Box<dyn ChunkSplitter + 'a>, String> {
+) -> Result<Box<dyn ChunkSplitter + 'b>, String> where 'a: 'b {
     new_default_chunk_splitter(path, chunk_size)
 }
