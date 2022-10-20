@@ -1,10 +1,4 @@
-use std::{
-    borrow::{Borrow, BorrowMut},
-    cell::RefCell,
-    ops::Add,
-    path,
-    rc::Rc,
-};
+use std::{cell::RefCell, ops::Add, path, rc::Rc};
 
 use crate::filestream::{new_chunk_reader, ChunkReader};
 

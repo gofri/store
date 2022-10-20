@@ -15,10 +15,10 @@ impl LocalFileChunker {
 
     fn seek_index(&self, index: u64) -> StdResult<u64> {
         let offset = self.index_to_offset(index);
-        return match self.open_file() {
+        match self.open_file() {
             Ok(mut f) => f.seek(std::io::SeekFrom::Start(offset)),
             Err(e) => Err(e),
-        };
+        }
     }
 
     fn open_file(&self) -> StdResult<File> {
