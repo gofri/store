@@ -28,6 +28,7 @@ fn main() {
     let chunk_size = config.unwrap().get_int("chunk_size").unwrap() as u64;
     let splitter = new_chunk_splitter(args.path.as_path(), chunk_size).unwrap();
 
+    println!("start reading {} bytes", splitter.total_size());
     let mut i = 0;
     loop {
         match splitter.next_reader() {

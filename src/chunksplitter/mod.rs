@@ -14,6 +14,7 @@ pub enum ReadRes {
 
 pub trait ChunkSplitter {
     fn next_reader(&self) -> Result<Box<dyn BufReader>, ReadRes>;
+    fn total_size(&self) -> u64;
 }
 
 pub fn new_chunk_splitter(

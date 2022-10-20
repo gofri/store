@@ -54,6 +54,10 @@ impl super::ChunkSplitter for DefaultChunkSplitter {
             })),
         }
     }
+
+    fn total_size(&self) -> u64 {
+        self.total_size
+    }
 }
 
 //
