@@ -2,15 +2,13 @@ use clap::Parser;
 
 mod filestream;
 
-
 mod config;
 use crate::config::get_config;
 
 mod uploader;
 
-
 mod chunksplitter;
-use crate::chunksplitter::{new_chunk_splitter, ChunkSplitter};
+use crate::chunksplitter::new_chunk_splitter;
 
 /// Search for a pattern in a file and display the lines that contain it.
 #[derive(Parser)]

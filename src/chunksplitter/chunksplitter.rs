@@ -25,7 +25,7 @@ pub fn new_default_chunk_splitter(
 impl super::ChunkSplitter for DefaultChunkSplitter {
     fn next_reader(&self) -> Box<dyn BufReader> {
         let index = *self.index.borrow();
-        self.index.borrow_mut().add(1);
+        _ = self.index.borrow_mut().add(1);
         Box::new(SingleChunkReader {
             chunk_reader: Rc::clone(&self.chunk_reader),
             index,
