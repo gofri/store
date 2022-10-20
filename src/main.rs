@@ -43,20 +43,4 @@ fn main() {
             }
         }
     }
-    /*
-    let mut cr = new_chunk_reader(args.path, chunk_size).unwrap();
-
-    let mut i = 0;
-    loop {
-        let mut buf = vec![0u8; chunk_size as usize];
-        let s = cr.read_chunk(i, &mut buf).unwrap();
-        if s == 0 {
-            break;
-        }
-        let u = uploader::new(i);
-        println!("uploaded: {:?}", u.upload(&buf).unwrap());
-
-        i += 1;
-    }
-    */
 }
