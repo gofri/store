@@ -1,7 +1,7 @@
 use std::path;
 
-mod chunksplitter;
-use self::chunksplitter::new_default_chunk_splitter;
+mod default;
+use self::default::new_default_chunk_splitter;
 
 pub trait BufReader {
     fn read(&mut self) -> Result<bytes::Bytes, String>;
