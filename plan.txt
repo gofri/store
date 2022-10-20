@@ -4,7 +4,7 @@ UPLOAD:
 src file [path] ->
 get file info [path, size] ->
 chunk splitter [path, total_size, chunk_size] -> 
-prepare index [path, total_size, chunk_size]:
+prepare index [total_size, chunk_size, config.{encryption, compression}]:
 	general: { status=plan, total_size, manipulation: [encryption, compression, etc.] }
 	per_chunk: for each chunk:
 		plan_chunk_storage(index, chunk_size) {
