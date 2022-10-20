@@ -1,0 +1,31 @@
+chunk size is min([p.chunk_size for p in providers]) # important so that can read from many in parallel to bypass bandwidth limits
+
+UPLOAD:
+src file [path] ->
+get file info [path, size] ->
+chunk splitter [path, total_size, chunk_size] -> 
+prepare index [path, total_size, chunk_size]:
+	general: { status=plan, total_size, manipulation: [encryption, compression, etc.] }
+	per_chunk: for each chunk:
+		plan_chunk_storage(index, chunk_size) {
+			provider-eg-github: {
+				eg repo, branch
+			}
+			provider-eg-gitlab: {
+				eg repo, branch
+			}
+		}
+->
+for c in chunk with threadpool: 
+	c => for m in manipulations do m(c) => c'
+	c' => for p in providers => p.upload(c') 
+# threadpool should limit each provider and number of parallel channels so to:
+	- maximize cpu utilization (manipulation)
+	- maximize per-provider bandwidth
+	- not too much RAM is used
+->
+complete(success):
+	match success:
+		true => mark status=uploaded
+		false => undo(plan); remove plan	
+

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::path::{self, PathBuf};
 use std::str;
 
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Serialize, Deserialize)]
 struct LocalUploader {
     path: PathBuf,
 }
