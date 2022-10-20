@@ -13,24 +13,22 @@ impl LocalFileChunker {
         self.chunk_size * index
     }
 
-    fn seek_index(&self, index: u64) -> StdResult<u64> {
+    fn open_file_at_index(&self, index: u64) -> StdResult<File> {
         let offset = self.index_to_offset(index);
-        match self.open_file() {
-            Ok(mut f) => f.seek(std::io::SeekFrom::Start(offset)),
+        match File::open(self.path.as_path()) {
+            Ok(mut f) => {
+                f.seek(std::io::SeekFrom::Start(offset))?;
+                Ok(f)
+            }
             Err(e) => Err(e),
         }
-    }
-
-    fn open_file(&self) -> StdResult<File> {
-        File::open(self.path.as_path())
     }
 }
 
 impl super::ChunkReader for LocalFileChunker {
     fn read_chunk(&self, index: u64, buf: &mut [u8]) -> StdResult<usize> {
-        self.seek_index(index)?;
         let chunked_buf = &mut buf[0..self.chunk_size as usize];
-        self.open_file()?.read(chunked_buf)
+        self.open_file_at_index(index)?.read(chunked_buf)
     }
 }
 

@@ -26,8 +26,16 @@ fn main() {
     let config = get_config();
     let chunk_size = config.unwrap().get_int("chunk_size").unwrap() as u64;
     let splitter = new_chunk_splitter(args.path.as_path(), chunk_size).unwrap();
-    let mut reader = splitter.next_reader();
-    println!("got: {:?}", reader.read().unwrap())
+
+    loop {
+        match splitter.next_reader() {
+            Ok(mut r) => println!("got: {:?}", r.read().unwrap()),
+            Err(_) => {
+                println!("done!");
+                break;
+            }
+        }
+    }
     /*
     let mut cr = new_chunk_reader(args.path, chunk_size).unwrap();
 

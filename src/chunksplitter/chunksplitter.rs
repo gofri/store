@@ -6,8 +6,20 @@ use super::BufReader;
 
 struct DefaultChunkSplitter {
     index: RefCell<u64>,
+    total_size: u64,
     chunk_size: u64,
     chunk_reader: Rc<Box<dyn ChunkReader>>,
+}
+
+fn get_file_size(path: &path::Path) -> Result<u64, String> {
+    match std::fs::metadata(path) {
+        Ok(m) => Ok(m.len()),
+        Err(e) => Err(std::fmt::format(format_args!(
+            "failed to get file ({}) size: {}",
+            path.display(),
+            e
+        ))),
+    }
 }
 
 pub fn new_default_chunk_splitter(
@@ -15,22 +27,32 @@ pub fn new_default_chunk_splitter(
     chunk_size: u64,
 ) -> Result<Box<dyn super::ChunkSplitter>, String> {
     let reader = Box::new(new_chunk_reader(path::PathBuf::from(path), chunk_size)?);
+    let total_size = get_file_size(path)?;
     Ok(Box::new(DefaultChunkSplitter {
         index: RefCell::new(0),
+        total_size,
         chunk_size,
         chunk_reader: Rc::new(reader),
     }))
 }
 
+impl DefaultChunkSplitter {
+    fn done_reading(&self) -> bool {
+        return *self.index.borrow() * self.chunk_size > self.total_size;
+    }
+}
+
 impl super::ChunkSplitter for DefaultChunkSplitter {
-    fn next_reader(&self) -> Box<dyn BufReader> {
-        let index = *self.index.borrow();
-        _ = self.index.borrow_mut().add(1);
-        Box::new(SingleChunkReader {
-            chunk_reader: Rc::clone(&self.chunk_reader),
-            index,
-            chunk_size: self.chunk_size,
-        })
+    fn next_reader(&self) -> Result<Box<dyn BufReader>, super::ReadRes> {
+        let index = self.index.replace_with(|old| *old + 1);
+        match self.done_reading() {
+            true => Err(super::ReadRes::Eof),
+            false => Ok(Box::new(SingleChunkReader {
+                chunk_reader: Rc::clone(&self.chunk_reader),
+                index,
+                chunk_size: self.chunk_size,
+            })),
+        }
     }
 }
 
