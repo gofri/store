@@ -8,7 +8,7 @@ struct DefaultChunkSplitter {
     index: RefCell<u64>,
     total_size: u64,
     chunk_size: u64,
-    chunk_reader: Rc<Box<dyn ChunkReader>>,
+    chunk_reader: Rc<dyn ChunkReader>,
 }
 
 fn get_file_size(path: &path::Path) -> Result<u64, String> {
@@ -26,7 +26,7 @@ pub fn new_default_chunk_splitter(
     path: &path::Path,
     chunk_size: u64,
 ) -> Result<Box<dyn super::ChunkSplitter>, String> {
-    let reader = Box::new(new_chunk_reader(path::PathBuf::from(path), chunk_size)?);
+    let reader = new_chunk_reader(path::PathBuf::from(path), chunk_size)?;
     let total_size = get_file_size(path)?;
     Ok(Box::new(DefaultChunkSplitter {
         index: RefCell::new(0),
@@ -63,7 +63,7 @@ impl super::ChunkSplitter for DefaultChunkSplitter {
 //
 
 struct SingleChunkReader {
-    chunk_reader: Rc<Box<dyn ChunkReader>>,
+    chunk_reader: Rc<dyn ChunkReader>,
     index: u64,
     chunk_size: u64,
 }
