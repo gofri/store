@@ -24,7 +24,7 @@ pub trait ChunkSplitter<'c> /* : BufReaderIntoIter<'c> */ {
     fn total_size(&self) -> u64;
 }
 
-pub fn new_chunk_splitter<'a, 'b>(
+pub fn new<'a, 'b>(
     path: &'a path::Path,
     chunk_size: u64,
 ) -> Result<Box<dyn ChunkSplitter + 'b>, String>
