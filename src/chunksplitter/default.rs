@@ -35,6 +35,12 @@ where
     }))
 }
 
+impl DefaultChunkSplitter<'_> {
+    fn is_valid_chunk(&self, chunk_index: u64) -> bool {
+        chunk_index * self.chunk_size < self.total_size
+    }
+}
+
 impl<'c> super::ChunkSplitter<'c> for DefaultChunkSplitter<'c> {
     // TODO c
     fn total_size(&self) -> u64 {
@@ -47,12 +53,12 @@ impl<'c> super::ChunkSplitter<'c> for DefaultChunkSplitter<'c> {
     {
         Box::new(ChunkReaderIter {
             index: RefCell::new(0),
-            total_size: self.total_size,
-            chunk_size: self.chunk_size,
-            chunk_reader: Rc::clone(&self.chunk_reader),
+            splitter: self,
         })
     }
 }
+
+/*
 impl<'a> super::BufReaderIntoIter<'a> for DefaultChunkSplitter<'a> {}
 impl<'a> IntoIterator for DefaultChunkSplitter<'a> {
     type Item = super::BufReaderIterItem<'a>;
@@ -60,25 +66,17 @@ impl<'a> IntoIterator for DefaultChunkSplitter<'a> {
     fn into_iter(self) -> Self::IntoIter {
         Box::new(ChunkReaderIter {
             index: RefCell::new(0),
-            total_size: self.total_size,
-            chunk_size: self.chunk_size,
-            chunk_reader: Rc::clone(&self.chunk_reader),
+            splitter: &self,
         })
     }
 }
+ */
 
 //
 
 struct ChunkReaderIter<'a> {
     index: RefCell<u64>,
-    total_size: u64,
-    chunk_size: u64,
-    chunk_reader: Rc<dyn ChunkReader + 'a>,
-}
-impl<'a> ChunkReaderIter<'a> {
-    fn done_reading(&self) -> bool {
-        return *self.index.borrow() * self.chunk_size > self.total_size;
-    }
+    splitter: &'a DefaultChunkSplitter<'a>,
 }
 
 impl<'a> super::BufReaderIter<'a> for ChunkReaderIter<'a> {}
@@ -86,14 +84,14 @@ impl<'a> Iterator for ChunkReaderIter<'a> {
     type Item = super::BufReaderIterItem<'a>;
     fn next(&mut self) -> std::option::Option<<Self as Iterator>::Item> {
         let index = self.index.replace_with(|old| *old + 1);
-        if self.done_reading() {
-            None
-        } else {
+        if self.splitter.is_valid_chunk(index) {
             Some(Box::new(SingleChunkReader {
-                chunk_reader: Rc::clone(&self.chunk_reader),
+                chunk_reader: Rc::clone(&self.splitter.chunk_reader),
                 index,
-                chunk_size: self.chunk_size,
+                chunk_size: self.splitter.chunk_size,
             }))
+        } else {
+            None
         }
     }
 }

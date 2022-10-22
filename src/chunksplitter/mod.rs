@@ -15,7 +15,7 @@ pub trait BufReaderIntoIter<'a>:
     IntoIterator<Item = BufReaderIterItem<'a>, IntoIter = BufReaderIntoIterBound<'a>>
 {
 }
-pub trait ChunkSplitter<'c>: BufReaderIntoIter<'c> {
+pub trait ChunkSplitter<'c> /* : BufReaderIntoIter<'c> */ {
     // TODO back to a
     fn make_iter<'a, 'b>(&'a self) -> BufReaderIntoIterBound<'b>
     where
