@@ -7,8 +7,14 @@ pub trait BufReader {
     fn read(&mut self) -> Result<bytes::Bytes, String>;
 }
 
-pub trait ChunkSplitter {
+pub trait BufReaderIter {
     fn next_reader<'a, 'b>(&'a self) -> std::option::Option<Box<dyn BufReader + 'b>>
+    where
+        'a: 'b;
+}
+
+pub trait ChunkSplitter {
+    fn make_iter<'a, 'b>(&'a self) -> Box<dyn BufReaderIter + 'b>
     where
         'a: 'b;
     fn total_size(&self) -> u64;

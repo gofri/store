@@ -5,7 +5,6 @@ use crate::filestream::{new_chunk_reader, ChunkReader};
 use super::BufReader;
 
 struct DefaultChunkSplitter<'a> {
-    index: RefCell<u64>,
     total_size: u64,
     chunk_size: u64,
     chunk_reader: Rc<dyn ChunkReader + 'a>,
@@ -32,20 +31,39 @@ where
     let chunk_reader = Rc::new(new_chunk_reader(path, chunk_size)?);
     let total_size = get_file_size(path)?;
     Ok(Box::new(DefaultChunkSplitter {
-        index: RefCell::new(0),
         total_size,
         chunk_size,
         chunk_reader,
     }))
 }
 
-impl DefaultChunkSplitter<'_> {
-    fn done_reading(&self) -> bool {
-        return *self.index.borrow() * self.chunk_size > self.total_size;
+impl super::ChunkSplitter for DefaultChunkSplitter<'_> {
+    fn total_size(&self) -> u64 {
+        self.total_size
+    }
+
+    fn make_iter<'a, 'b>(&'a self) -> Box<dyn super::BufReaderIter + 'b>
+    where
+        'a: 'b,
+    {
+        Box::new(ChunkReaderIter {
+            index: RefCell::new(0),
+            total_size: self.total_size,
+            chunk_size: self.chunk_size,
+            chunk_reader: Rc::clone(&self.chunk_reader),
+        })
     }
 }
 
-impl super::ChunkSplitter for DefaultChunkSplitter<'_> {
+//
+
+struct ChunkReaderIter<'a> {
+    index: RefCell<u64>,
+    total_size: u64,
+    chunk_size: u64,
+    chunk_reader: Rc<dyn ChunkReader + 'a>,
+}
+impl super::BufReaderIter for ChunkReaderIter<'_> {
     fn next_reader<'a, 'b>(&'a self) -> std::option::Option<Box<dyn BufReader + 'b>>
     where
         'a: 'b,
@@ -60,9 +78,10 @@ impl super::ChunkSplitter for DefaultChunkSplitter<'_> {
             })),
         }
     }
-
-    fn total_size(&self) -> u64 {
-        self.total_size
+}
+impl ChunkReaderIter<'_> {
+    fn done_reading(&self) -> bool {
+        return *self.index.borrow() * self.chunk_size > self.total_size;
     }
 }
 

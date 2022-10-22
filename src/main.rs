@@ -29,9 +29,10 @@ fn main() {
     let splitter = new_chunk_splitter(args.path.as_path(), chunk_size).unwrap();
 
     println!("start reading {} bytes", splitter.total_size());
+    let iter = splitter.make_iter();
     let mut i = 0;
     loop {
-        match splitter.next_reader() {
+        match iter.next_reader() {
             Some(mut r) => {
                 let s = r.read().unwrap();
                 let u = uploader::new(i);
