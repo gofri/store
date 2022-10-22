@@ -43,11 +43,11 @@ impl DefaultChunkSplitter {
 }
 
 impl super::ChunkSplitter for DefaultChunkSplitter {
-    fn next_reader(&self) -> Result<Box<dyn BufReader>, super::ReadRes> {
+    fn next_reader(&self) -> std::option::Option<Box<dyn BufReader>> {
         let index = self.index.replace_with(|old| *old + 1);
         match self.done_reading() {
-            true => Err(super::ReadRes::Eof),
-            false => Ok(Box::new(SingleChunkReader {
+            true => None,
+            false => Some(Box::new(SingleChunkReader {
                 chunk_reader: Rc::clone(&self.chunk_reader),
                 index,
                 chunk_size: self.chunk_size,

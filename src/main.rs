@@ -32,13 +32,13 @@ fn main() {
     let mut i = 0;
     loop {
         match splitter.next_reader() {
-            Ok(mut r) => {
+            Some(mut r) => {
                 let s = r.read().unwrap();
                 let u = uploader::new(i);
                 println!("uploaded: {:?}", u.upload(s.as_ref()).unwrap());
                 i += 1;
             }
-            Err(_) => {
+            None => {
                 println!("done!");
                 break;
             }
