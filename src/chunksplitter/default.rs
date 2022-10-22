@@ -4,11 +4,11 @@ use crate::filestream::{new_chunk_reader, ChunkReader};
 
 use super::BufReader;
 
-struct DefaultChunkSplitter {
+struct DefaultChunkSplitter<'a> {
     index: RefCell<u64>,
     total_size: u64,
     chunk_size: u64,
-    chunk_reader: Rc<dyn ChunkReader>,
+    chunk_reader: Rc<dyn ChunkReader + 'a>,
 }
 
 fn get_file_size(path: &path::Path) -> Result<u64, String> {
@@ -22,28 +22,34 @@ fn get_file_size(path: &path::Path) -> Result<u64, String> {
     }
 }
 
-pub fn new_default_chunk_splitter(
-    path: &path::Path,
+pub fn new_default_chunk_splitter<'a, 'b>(
+    path: &'a path::Path,
     chunk_size: u64,
-) -> Result<Box<dyn super::ChunkSplitter>, String> {
-    let reader = new_chunk_reader(path::PathBuf::from(path), chunk_size)?;
+) -> Result<Box<dyn super::ChunkSplitter + 'b>, String>
+where
+    'a: 'b,
+{
+    let chunk_reader = Rc::new(new_chunk_reader(path, chunk_size)?);
     let total_size = get_file_size(path)?;
     Ok(Box::new(DefaultChunkSplitter {
         index: RefCell::new(0),
         total_size,
         chunk_size,
-        chunk_reader: Rc::new(reader),
+        chunk_reader,
     }))
 }
 
-impl DefaultChunkSplitter {
+impl DefaultChunkSplitter<'_> {
     fn done_reading(&self) -> bool {
         return *self.index.borrow() * self.chunk_size > self.total_size;
     }
 }
 
-impl super::ChunkSplitter for DefaultChunkSplitter {
-    fn next_reader(&self) -> std::option::Option<Box<dyn BufReader>> {
+impl super::ChunkSplitter for DefaultChunkSplitter<'_> {
+    fn next_reader<'a, 'b>(&'a self) -> std::option::Option<Box<dyn BufReader + 'b>>
+    where
+        'a: 'b,
+    {
         let index = self.index.replace_with(|old| *old + 1);
         match self.done_reading() {
             true => None,
@@ -62,13 +68,13 @@ impl super::ChunkSplitter for DefaultChunkSplitter {
 
 //
 
-struct SingleChunkReader {
-    chunk_reader: Rc<dyn ChunkReader>,
+struct SingleChunkReader<'a> {
     index: u64,
     chunk_size: u64,
+    chunk_reader: Rc<dyn ChunkReader + 'a>,
 }
 
-impl super::BufReader for SingleChunkReader {
+impl super::BufReader for SingleChunkReader<'_> {
     fn read(&mut self) -> Result<bytes::Bytes, String> {
         let mut buf = vec![0u8; self.chunk_size as usize];
         let read_bytes = match self.chunk_reader.read_chunk(self.index, &mut buf) {

@@ -8,13 +8,18 @@ pub trait BufReader {
 }
 
 pub trait ChunkSplitter {
-    fn next_reader(&self) -> std::option::Option<Box<dyn BufReader>>;
+    fn next_reader<'a, 'b>(&'a self) -> std::option::Option<Box<dyn BufReader + 'b>>
+    where
+        'a: 'b;
     fn total_size(&self) -> u64;
 }
 
-pub fn new_chunk_splitter(
-    path: &path::Path,
+pub fn new_chunk_splitter<'a, 'b>(
+    path: &'a path::Path,
     chunk_size: u64,
-) -> Result<Box<dyn ChunkSplitter>, String> {
+) -> Result<Box<dyn ChunkSplitter + 'b>, String>
+where
+    'a: 'b,
+{
     new_default_chunk_splitter(path, chunk_size)
 }
