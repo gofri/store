@@ -29,8 +29,7 @@ fn main() {
     let splitter = new_chunk_splitter(args.path.as_path(), chunk_size).unwrap();
 
     println!("start reading {} bytes", splitter.total_size());
-    let iter = splitter.make_iter();
-    for (mut s, i) in iter.zip(0u64..) {
+    for (mut s, i) in splitter.make_iter().zip(0u64..) {
         let s = s.read().unwrap();
         let u = uploader::new(i);
         println!("uploaded: {:?}", u.upload(s.as_ref()).unwrap());

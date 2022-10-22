@@ -9,9 +9,15 @@ pub trait BufReader {
 
 type BufReaderIterItem<'a> = Box<dyn BufReader + 'a>;
 pub trait BufReaderIter<'a>: Iterator<Item = BufReaderIterItem<'a>> {}
+type BufReaderIntoIterBound<'a> = Box<dyn BufReaderIter<'a> + 'a>;
 
-pub trait ChunkSplitter {
-    fn make_iter<'a, 'b>(&'a self) -> Box<dyn BufReaderIter<Item = BufReaderIterItem> + 'b>
+pub trait BufReaderIntoIter<'a>:
+    IntoIterator<Item = BufReaderIterItem<'a>, IntoIter = BufReaderIntoIterBound<'a>>
+{
+}
+pub trait ChunkSplitter<'c>: BufReaderIntoIter<'c> {
+    // TODO back to a
+    fn make_iter<'a, 'b>(&'a self) -> BufReaderIntoIterBound<'b>
     where
         'a: 'b;
     fn total_size(&self) -> u64;

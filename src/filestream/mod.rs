@@ -1,5 +1,5 @@
 use std::io::Result as StdResult;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 mod localfile;
 use self::localfile::new_local_file_chunker;
