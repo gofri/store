@@ -2,7 +2,7 @@ use std::{cell::RefCell, path, rc::Rc};
 
 use crate::filestream::{new_chunk_reader, ChunkReader};
 
-use super::BufReader;
+use super::{BufReader, BufReaderIter};
 
 struct DefaultChunkSplitter<'a> {
     total_size: u64,
@@ -65,31 +65,15 @@ struct ChunkReaderIter<'a> {
     chunk_size: u64,
     chunk_reader: Rc<dyn ChunkReader + 'a>,
 }
-impl super::BufReaderIter for ChunkReaderIter<'_> {
-    fn next_reader<'a, 'b>(&'a self) -> std::option::Option<Box<dyn BufReader + 'b>>
-    where
-        'a: 'b,
-    {
-        let index = self.index.replace_with(|old| *old + 1);
-        match self.done_reading() {
-            true => None,
-            false => Some(Box::new(SingleChunkReader {
-                chunk_reader: Rc::clone(&self.chunk_reader),
-                index,
-                chunk_size: self.chunk_size,
-            })),
-        }
-    }
-}
-
 impl ChunkReaderIter<'_> {
     fn done_reading(&self) -> bool {
         return *self.index.borrow() * self.chunk_size > self.total_size;
     }
 }
 
+impl<'a> BufReaderIter for ChunkReaderIter<'a> {}
 impl<'a> Iterator for ChunkReaderIter<'a> {
-    type Item = Box<dyn super::BufReader + 'a>;
+    type Item = super::BufReaderIterItem<'a>;
     fn next(&mut self) -> std::option::Option<<Self as Iterator>::Item> {
         let index = self.index.replace_with(|old| *old + 1);
         match self.done_reading() {

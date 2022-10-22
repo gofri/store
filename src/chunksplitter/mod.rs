@@ -7,13 +7,8 @@ pub trait BufReader {
     fn read(&mut self) -> Result<bytes::Bytes, String>;
 }
 
-pub trait BufReaderIter: Iterator {
-    fn next_reader<'a, 'b>(&'a self) -> std::option::Option<Box<dyn BufReader + 'b>>
-    where
-        'a: 'b;
-}
-
 type BufReaderIterItem<'a> = Box<dyn BufReader + 'a>;
+pub trait BufReaderIter: Iterator {}
 
 pub trait ChunkSplitter {
     fn make_iter<'a, 'b>(&'a self) -> Box<dyn BufReaderIter<Item = BufReaderIterItem> + 'b>
