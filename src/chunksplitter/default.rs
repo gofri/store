@@ -6,7 +6,7 @@ struct DefaultChunkSplitter<'a> {
     index: RefCell<u64>,
     total_size: u64,
     chunk_size: u64,
-    chunk_reader: Rc<Box<dyn ChunkReader + 'a>>,
+    chunk_reader: Rc<dyn ChunkReader + 'a>,
 }
 
 fn get_file_size(path: &path::Path) -> Result<u64, String> {
@@ -20,65 +20,68 @@ fn get_file_size(path: &path::Path) -> Result<u64, String> {
     }
 }
 
-pub fn new_default_chunk_splitter<'a>(
+pub fn new_default_chunk_splitter<'a, 'b>(
     path: &'a path::Path,
     chunk_size: u64,
-) -> Result<Box<dyn super::ChunkSplitter + 'a>, String> {
-    let reader = Box::new(new_chunk_reader(path, chunk_size)?);
+) -> Result<Box<dyn super::ChunkSplitter + 'b>, String> where 'a: 'b {
+    let reader = Rc::new(new_chunk_reader(path, chunk_size)?);
     let total_size = get_file_size(path)?;
     Ok(Box::new(DefaultChunkSplitter {
         index: RefCell::new(0),
         total_size,
         chunk_size,
-        chunk_reader: Rc::new(reader),
+        chunk_reader: reader,
     }))
 }
 
-impl<'a> DefaultChunkSplitter<'a> {
+impl DefaultChunkSplitter<'_> {
     fn done_reading(&self) -> bool {
         return *self.index.borrow() * self.chunk_size > self.total_size;
     }
 }
 
 impl<'a> super::ChunkSplitter<'a> for DefaultChunkSplitter<'a> {
-    fn next_reader(&'a self) -> Result<Box<dyn super::BufReader + 'a>, super::ReadRes> {
-        let index = self.index.replace_with(|old| *old + 1);
-        match self.done_reading() {
-            true => Err(super::ReadRes::Eof),
-            false => Ok(Box::new(SingleChunkReader {
-                chunk_reader: Rc::clone(&self.chunk_reader),
-                index,
-                chunk_size: self.chunk_size,
-            })),
-        }
-    }
-
     fn total_size(&self) -> u64 {
         self.total_size
     }
 }
 
-//
-
-struct SingleChunkReader<'a> {
-    chunk_reader: Rc<Box<dyn ChunkReader + 'a>>,
-    index: u64,
-    chunk_size: u64,
+impl<'a> Iterator for DefaultChunkSplitter<'a> {
+    type Item = Box<dyn super::BufReader + 'a>;
+    fn next(&mut self) -> std::option::Option<<Self as Iterator>::Item> {
+        let index = self.index.replace_with(|old| *old + 1);
+        if self.done_reading() {
+            None
+        } else {
+            Some(Box::new(SingleChunkReader {
+                index,
+                chunk_size: self.chunk_size,
+                chunk_reader: Rc::clone(&self.chunk_reader),
+            }))
+        }
+    }
 }
 
-impl<'a> super::BufReader<'a> for SingleChunkReader<'a> {
-    fn read(&'a mut self) -> Result<bytes::Bytes, String> {
+struct SingleChunkReader<'a> {
+    index: u64,
+    chunk_size: u64,
+    chunk_reader: Rc<dyn ChunkReader + 'a>,
+}
+
+impl super::BufReader for SingleChunkReader<'_> {
+    fn read(&mut self) -> Result<bytes::Bytes, String> {
         let mut buf = vec![0u8; self.chunk_size as usize];
-        let read_bytes = match self.chunk_reader.read_chunk(self.index, &mut buf) {
-            Ok(x) => x,
+        match self.chunk_reader.read_chunk(self.index, &mut buf) {
+            Ok(x) => {
+                buf.truncate(x);
+                Ok(bytes::Bytes::from(buf))
+            }
             Err(e) => {
-                return Err(std::fmt::format(format_args!(
+                Err(std::fmt::format(format_args!(
                     "failed to read chunk: {}",
                     e
                 )))
             }
-        };
-
-        Ok(bytes::Bytes::from(buf).slice(0..read_bytes))
+        }
     }
 }
