@@ -1,4 +1,4 @@
-use std::{cell::RefCell, path, rc::Rc};
+use std::{cell::RefCell, path, sync::Arc};
 
 use crate::filestream::{new_chunk_reader, ChunkReader};
 
@@ -6,7 +6,7 @@ struct DefaultChunkSplitter<'a> {
     index: RefCell<u64>,
     total_size: u64,
     chunk_size: u64,
-    chunk_reader: Rc<dyn ChunkReader + 'a>,
+    chunk_reader: Arc<dyn ChunkReader + 'a>,
 }
 
 fn get_file_size(path: &path::Path) -> Result<u64, String> {
@@ -21,14 +21,14 @@ fn get_file_size(path: &path::Path) -> Result<u64, String> {
 }
 
 pub fn new_default_chunk_splitter<'a, 'b>(
-    path: &'a path::Path,
+    path: path::PathBuf,
     chunk_size: u64,
-) -> Result<Box<dyn super::ChunkSplitter + 'b>, String>
+) -> Result<Box<dyn super::ChunkSplitter<'b> + 'b>, String>
 where
     'a: 'b,
 {
-    let chunk_reader = Rc::new(new_chunk_reader(path, chunk_size)?);
-    let total_size = get_file_size(path)?;
+    let total_size = get_file_size(path.as_path())?;
+    let chunk_reader = Arc::new(new_chunk_reader(path, chunk_size)?);
     Ok(Box::new(DefaultChunkSplitter {
         index: RefCell::new(0),
         total_size,
@@ -56,7 +56,7 @@ impl<'a> Iterator for DefaultChunkSplitter<'a> {
         let index = self.index.replace_with(|old| *old + 1);
         if self.is_valid_chunk(index) {
             Some(Box::new(SingleChunkReader {
-                chunk_reader: Rc::clone(&self.chunk_reader),
+                chunk_reader: Arc::clone(&self.chunk_reader),
                 index,
                 chunk_size: self.chunk_size,
             }))
@@ -70,7 +70,7 @@ impl<'a> Iterator for DefaultChunkSplitter<'a> {
 struct SingleChunkReader<'a> {
     index: u64,
     chunk_size: u64,
-    chunk_reader: Rc<dyn ChunkReader + 'a>,
+    chunk_reader: Arc<dyn ChunkReader + 'a>,
 }
 
 impl super::BufReader for SingleChunkReader<'_> {

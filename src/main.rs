@@ -1,3 +1,6 @@
+use std::io::BufRead;
+use std::thread;
+
 use clap::Parser;
 
 mod filestream;
@@ -26,12 +29,20 @@ fn main() {
 
     let config = get_config();
     let chunk_size = config.unwrap().get_int("chunk_size").unwrap() as u64;
-    let mut splitter = chunksplitter::new(args.path.as_path(), chunk_size).unwrap();
+    let mut splitter = chunksplitter::new(args.path, chunk_size).unwrap();
 
     println!("start reading {} bytes", splitter.total_size());
-    for (mut s, i) in splitter.as_mut().zip(0u64..) {
-        let s = s.read().unwrap();
-        let u = uploader::new(i);
-        println!("uploaded: {:?}", u.upload(s.as_ref()).unwrap());
+    let mut children = vec![];
+    for (s, i) in splitter.as_mut().zip(0u64..) {
+        let mut r = s as Box<dyn chunksplitter::BufReader>;
+        children.push(thread::spawn(move || {
+            let b = r.read().unwrap();
+            let u = uploader::new(i);
+            println!("uploaded: {:?}", u.upload(b.as_ref()).unwrap());
+        }));
+    }
+    for child in children {
+        // Wait for the thread to finish. Returns a result.
+        let _ = child.join();
     }
 }
