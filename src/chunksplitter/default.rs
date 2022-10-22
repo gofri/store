@@ -42,9 +42,7 @@ impl super::ChunkSplitter for DefaultChunkSplitter<'_> {
         self.total_size
     }
 
-    fn make_iter<'a, 'b>(
-        &'a self,
-    ) -> Box<dyn super::BufReaderIter<Item = super::BufReaderIterItem> + 'b>
+    fn make_iter<'a, 'b>(&'a self) -> Box<dyn super::BufReaderIter + 'b>
     where
         'a: 'b,
     {
@@ -71,7 +69,7 @@ impl ChunkReaderIter<'_> {
     }
 }
 
-impl<'a> BufReaderIter for ChunkReaderIter<'a> {}
+impl<'a> BufReaderIter<'a> for ChunkReaderIter<'a> {}
 impl<'a> Iterator for ChunkReaderIter<'a> {
     type Item = super::BufReaderIterItem<'a>;
     fn next(&mut self) -> std::option::Option<<Self as Iterator>::Item> {

@@ -8,7 +8,7 @@ pub trait BufReader {
 }
 
 type BufReaderIterItem<'a> = Box<dyn BufReader + 'a>;
-pub trait BufReaderIter: Iterator {}
+pub trait BufReaderIter<'a>: Iterator<Item = BufReaderIterItem<'a>> {}
 
 pub trait ChunkSplitter {
     fn make_iter<'a, 'b>(&'a self) -> Box<dyn BufReaderIter<Item = BufReaderIterItem> + 'b>
