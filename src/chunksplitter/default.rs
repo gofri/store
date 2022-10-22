@@ -86,13 +86,14 @@ impl<'a> Iterator for ChunkReaderIter<'a> {
     type Item = super::BufReaderIterItem<'a>;
     fn next(&mut self) -> std::option::Option<<Self as Iterator>::Item> {
         let index = self.index.replace_with(|old| *old + 1);
-        match self.done_reading() {
-            true => None,
-            false => Some(Box::new(SingleChunkReader {
+        if self.done_reading() {
+            None
+        } else {
+            Some(Box::new(SingleChunkReader {
                 chunk_reader: Rc::clone(&self.chunk_reader),
                 index,
                 chunk_size: self.chunk_size,
-            })),
+            }))
         }
     }
 }
@@ -107,16 +108,15 @@ struct SingleChunkReader<'a> {
 impl super::BufReader for SingleChunkReader<'_> {
     fn read(&mut self) -> Result<bytes::Bytes, String> {
         let mut buf = vec![0u8; self.chunk_size as usize];
-        let read_bytes = match self.chunk_reader.read_chunk(self.index, &mut buf) {
-            Ok(x) => x,
-            Err(e) => {
-                return Err(std::fmt::format(format_args!(
-                    "failed to read chunk: {}",
-                    e
-                )))
+        match self.chunk_reader.read_chunk(self.index, &mut buf) {
+            Ok(read_bytes) => {
+                buf.truncate(read_bytes);
+                Ok(bytes::Bytes::from(buf))
             }
-        };
-
-        Ok(bytes::Bytes::from(buf).slice(0..read_bytes))
+            Err(e) => Err(std::fmt::format(format_args!(
+                "failed to read chunk: {}",
+                e
+            ))),
+        }
     }
 }
