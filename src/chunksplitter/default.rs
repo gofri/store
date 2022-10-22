@@ -42,7 +42,9 @@ impl super::ChunkSplitter for DefaultChunkSplitter<'_> {
         self.total_size
     }
 
-    fn make_iter<'a, 'b>(&'a self) -> Box<dyn super::BufReaderIter + 'b>
+    fn make_iter<'a, 'b>(
+        &'a self,
+    ) -> Box<dyn super::BufReaderIter<Item = super::BufReaderIterItem> + 'b>
     where
         'a: 'b,
     {
@@ -79,12 +81,27 @@ impl super::BufReaderIter for ChunkReaderIter<'_> {
         }
     }
 }
+
 impl ChunkReaderIter<'_> {
     fn done_reading(&self) -> bool {
         return *self.index.borrow() * self.chunk_size > self.total_size;
     }
 }
 
+impl<'a> Iterator for ChunkReaderIter<'a> {
+    type Item = Box<dyn super::BufReader + 'a>;
+    fn next(&mut self) -> std::option::Option<<Self as Iterator>::Item> {
+        let index = self.index.replace_with(|old| *old + 1);
+        match self.done_reading() {
+            true => None,
+            false => Some(Box::new(SingleChunkReader {
+                chunk_reader: Rc::clone(&self.chunk_reader),
+                index,
+                chunk_size: self.chunk_size,
+            })),
+        }
+    }
+}
 //
 
 struct SingleChunkReader<'a> {

@@ -30,19 +30,9 @@ fn main() {
 
     println!("start reading {} bytes", splitter.total_size());
     let iter = splitter.make_iter();
-    let mut i = 0;
-    loop {
-        match iter.next_reader() {
-            Some(mut r) => {
-                let s = r.read().unwrap();
-                let u = uploader::new(i);
-                println!("uploaded: {:?}", u.upload(s.as_ref()).unwrap());
-                i += 1;
-            }
-            None => {
-                println!("done!");
-                break;
-            }
-        }
+    for (mut s, i) in iter.zip(0u64..) {
+        let s = s.read().unwrap();
+        let u = uploader::new(i);
+        println!("uploaded: {:?}", u.upload(s.as_ref()).unwrap());
     }
 }
