@@ -86,7 +86,7 @@ impl<'a> Iterator for ChunkReaderIter<'a> {
         let index = self.index.replace_with(|old| *old + 1);
         if self.splitter.is_valid_chunk(index) {
             Some(Box::new(SingleChunkReader {
-                chunk_reader: Rc::clone(&self.splitter.chunk_reader),
+                chunk_reader: self.splitter.chunk_reader.as_ref(),
                 index,
                 chunk_size: self.splitter.chunk_size,
             }))
@@ -100,7 +100,7 @@ impl<'a> Iterator for ChunkReaderIter<'a> {
 struct SingleChunkReader<'a> {
     index: u64,
     chunk_size: u64,
-    chunk_reader: Rc<dyn ChunkReader + 'a>,
+    chunk_reader: &'a dyn ChunkReader,
 }
 
 impl super::BufReader for SingleChunkReader<'_> {

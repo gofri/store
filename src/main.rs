@@ -9,6 +9,7 @@ mod uploader;
 
 mod chunksplitter;
 use crate::chunksplitter::new_chunk_splitter;
+
 use crate::uploader::ChunkUploader;
 
 /// Search for a pattern in a file and display the lines that contain it.
