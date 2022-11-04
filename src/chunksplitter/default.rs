@@ -74,7 +74,7 @@ struct SingleChunkReader<'a> {
 }
 
 impl super::BufReader for SingleChunkReader<'_> {
-    fn read(&mut self) -> Result<bytes::Bytes, String> {
+    fn read(&self) -> Result<bytes::Bytes, String> {
         let mut buf = vec![0u8; self.chunk_size as usize];
         match self.chunk_reader.read_chunk(self.index, &mut buf) {
             Ok(read_bytes) => {

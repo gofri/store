@@ -32,7 +32,7 @@ fn main() {
 
     println!("start reading {} bytes", splitter.total_size());
     thread::scope(|scope| {
-        for (mut s, i) in splitter.zip(0u64..) {
+        for (s, i) in splitter.zip(0u64..) {
             scope.spawn(move || {
                 let b = s.read().unwrap();
                 let u = uploader::new(i);
