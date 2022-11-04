@@ -27,8 +27,8 @@ pub trait ActionIndex {
 }
 
 struct UploadAction {
-    path: path::PathBuf,
-    src: path::PathBuf,
+    path: path::Path,
+    src: path::Path,
 }
 
 const REMOTE_FILE_NAME: &str = "data";
@@ -46,7 +46,7 @@ struct UploadActionData {
 impl UploadAction {
     // TODO should come from a provider (like the entire upload procedure and info)
     fn translate(src: &path::Path) -> Result<UploadActionData, String> {
-        // TODO return repo/branch 
+        // TODO return repo/branch
     }
 }
 
