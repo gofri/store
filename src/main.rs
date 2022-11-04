@@ -28,14 +28,13 @@ fn main() {
 
     let config = get_config();
     let chunk_size = config.unwrap().get_int("chunk_size").unwrap() as u64;
-    let mut splitter = chunksplitter::new(args.path.as_path(), chunk_size).unwrap();
+    let splitter = chunksplitter::new(args.path.as_path(), chunk_size).unwrap();
 
     println!("start reading {} bytes", splitter.total_size());
     thread::scope(|scope| {
-        for (s, i) in splitter.as_mut().zip(0u64..) {
-            let mut r = s as Box<dyn chunksplitter::BufReader>;
+        for (mut s, i) in splitter.zip(0u64..) {
             scope.spawn(move || {
-                let b = r.read().unwrap();
+                let b = s.read().unwrap();
                 let u = uploader::new(i);
                 println!("uploaded: {:?}", u.upload(b.as_ref()).unwrap());
             });
