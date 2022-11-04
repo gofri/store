@@ -1,5 +1,3 @@
-use std::path::Path;
-use std::sync::Arc;
 use std::thread;
 
 use clap::Parser;
@@ -30,8 +28,7 @@ fn main() {
 
     let config = get_config();
     let chunk_size = config.unwrap().get_int("chunk_size").unwrap() as u64;
-    let path = Arc::<Path>::from(args.path);
-    let mut splitter = chunksplitter::new(path, chunk_size).unwrap();
+    let mut splitter = chunksplitter::new(args.path.as_path(), chunk_size).unwrap();
 
     println!("start reading {} bytes", splitter.total_size());
     thread::scope(|scope| {
