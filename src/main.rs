@@ -34,17 +34,14 @@ fn main() {
     let mut splitter = chunksplitter::new(path, chunk_size).unwrap();
 
     println!("start reading {} bytes", splitter.total_size());
-    let mut children = vec![];
-    for (s, i) in splitter.as_mut().zip(0u64..) {
-        let mut r = s as Box<dyn chunksplitter::BufReader>;
-        children.push(thread::spawn(move || {
-            let b = r.read().unwrap();
-            let u = uploader::new(i);
-            println!("uploaded: {:?}", u.upload(b.as_ref()).unwrap());
-        }));
-    }
-    for child in children {
-        // Wait for the thread to finish. Returns a result.
-        let _ = child.join();
-    }
+    thread::scope(|scope| {
+        for (s, i) in splitter.as_mut().zip(0u64..) {
+            let mut r = s as Box<dyn chunksplitter::BufReader>;
+            scope.spawn(move || {
+                let b = r.read().unwrap();
+                let u = uploader::new(i);
+                println!("uploaded: {:?}", u.upload(b.as_ref()).unwrap());
+            });
+        }
+    });
 }
