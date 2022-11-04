@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::Result as StdResult;
 use std::io::{Read, Seek};
-use std::path::{self, Path, PathBuf};
+use std::path::{self, Path};
 use std::sync::Arc;
 
 pub struct LocalFileChunker {
