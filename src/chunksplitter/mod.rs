@@ -1,4 +1,4 @@
-use std::path;
+use std::{path, sync::Arc};
 
 mod default;
 
@@ -15,9 +15,12 @@ pub trait ChunkSplitter<'a>: BufReaderIter<'a> {
     fn total_size(&self) -> u64;
 }
 
-pub fn new<'b>(
-    path: path::PathBuf,
+pub fn new<'a, 'b>(
+    path: Arc<path::Path>,
     chunk_size: u64,
-) -> Result<Box<dyn ChunkSplitter<'b> + 'b>, String> {
+) -> Result<Box<dyn ChunkSplitter<'b> + 'b>, String>
+where
+    'a: 'b,
+{
     new_default_chunk_splitter(path, chunk_size)
 }

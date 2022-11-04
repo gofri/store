@@ -1,4 +1,6 @@
 use std::io::BufRead;
+use std::path::Path;
+use std::sync::Arc;
 use std::thread;
 
 use clap::Parser;
@@ -29,7 +31,8 @@ fn main() {
 
     let config = get_config();
     let chunk_size = config.unwrap().get_int("chunk_size").unwrap() as u64;
-    let mut splitter = chunksplitter::new(args.path, chunk_size).unwrap();
+    let path = Arc::<Path>::from(args.path);
+    let mut splitter = chunksplitter::new(path, chunk_size).unwrap();
 
     println!("start reading {} bytes", splitter.total_size());
     let mut children = vec![];

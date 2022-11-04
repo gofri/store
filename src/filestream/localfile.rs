@@ -2,9 +2,10 @@ use std::fs::File;
 use std::io::Result as StdResult;
 use std::io::{Read, Seek};
 use std::path::{self, Path, PathBuf};
+use std::sync::Arc;
 
 pub struct LocalFileChunker {
-    path: path::PathBuf,
+    path: Arc<path::Path>,
     pub chunk_size: u64,
 }
 
@@ -15,7 +16,7 @@ impl LocalFileChunker {
 
     fn open_file_at_index(&self, index: u64) -> StdResult<File> {
         let offset = self.index_to_offset(index);
-        match File::open(self.path.as_path()) {
+        match File::open(self.path.as_ref()) {
             Ok(mut f) => {
                 f.seek(std::io::SeekFrom::Start(offset))?;
                 Ok(f)
@@ -32,7 +33,10 @@ impl super::ChunkReader for LocalFileChunker {
     }
 }
 
-pub fn new_local_file_chunker(path: PathBuf, chunk_size: u64) -> Result<LocalFileChunker, String> {
+pub fn new_local_file_chunker(
+    path: Arc<Path>,
+    chunk_size: u64,
+) -> Result<LocalFileChunker, String> {
     if chunk_size == 0 {
         return Err("chunk size must not be zero".to_string());
     }

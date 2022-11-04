@@ -21,13 +21,13 @@ fn get_file_size(path: &path::Path) -> Result<u64, String> {
 }
 
 pub fn new_default_chunk_splitter<'a, 'b>(
-    path: path::PathBuf,
+    path: Arc<path::Path>,
     chunk_size: u64,
 ) -> Result<Box<dyn super::ChunkSplitter<'b> + 'b>, String>
 where
     'a: 'b,
 {
-    let total_size = get_file_size(path.as_path())?;
+    let total_size = get_file_size(path.as_ref())?;
     let chunk_reader = Arc::new(new_chunk_reader(path, chunk_size)?);
     Ok(Box::new(DefaultChunkSplitter {
         index: RefCell::new(0),
