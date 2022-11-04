@@ -1,5 +1,5 @@
 use std::io::Result as StdResult;
-use std::path::{Path};
+use std::path::Path;
 use std::sync::Arc;
 
 mod localfile;
