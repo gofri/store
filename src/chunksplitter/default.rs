@@ -16,9 +16,15 @@ where
         chunk_reader,
     })
 }
+
 pub struct ChunkSplitter<'a> {
     num_chunks: u64,
     chunk_reader: Arc<dyn ChunkReader + 'a>,
+}
+
+pub struct ChunkSplitterIter<'a> {
+    index: u64,
+    splitter: &'a ChunkSplitter<'a>,
 }
 
 fn get_file_size(path: &path::Path) -> Result<u64, String> {
@@ -41,10 +47,10 @@ impl ChunkSplitter<'_> {
 impl<'a> super::BufReaderIntoIterator<'a> for &'a ChunkSplitter<'a> {}
 impl<'a> IntoIterator for &'a ChunkSplitter<'a> {
     type Item = BufReaderIterItem<'a>;
-    type IntoIter = super::ChunkSplitterIter<'a>;
+    type IntoIter = ChunkSplitterIter<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
-        super::ChunkSplitterIter {
+        ChunkSplitterIter {
             index: 0,
             splitter: self,
         }
@@ -53,7 +59,7 @@ impl<'a> IntoIterator for &'a ChunkSplitter<'a> {
 
 pub type BufReaderIterItem<'a> = Box<dyn super::BufReader + 'a>;
 
-impl<'a> Iterator for super::ChunkSplitterIter<'a> {
+impl<'a> Iterator for ChunkSplitterIter<'a> {
     type Item = BufReaderIterItem<'a>;
     fn next(&mut self) -> std::option::Option<<Self as Iterator>::Item> {
         let index = self.index;
