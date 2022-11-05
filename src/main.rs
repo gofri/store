@@ -25,6 +25,7 @@ struct Cli {
 fn run<'a>(splitter: impl BufReaderIntoIterator<'a>) {
     thread::scope(|scope| {
         let mut children = vec![];
+
         for (s, i) in splitter.into_iter().zip(0u64..) {
             let handler = scope.spawn(move || -> Result<u64, String> {
                 let u = uploader::new(i);
@@ -35,6 +36,7 @@ fn run<'a>(splitter: impl BufReaderIntoIterator<'a>) {
             });
             children.push(handler);
         }
+
         for c in children {
             match c.join().expect("thread panic!") {
                 Ok(i) => {
