@@ -5,7 +5,7 @@ mod default;
 
 pub struct ChunkSplitter<'a> {
     num_chunks: u64,
-    chunk_reader: Arc<dyn ChunkReader + 'a>, // TODO ugly pub
+    chunk_reader: Arc<dyn ChunkReader + 'a>,
 }
 
 pub struct ChunkSplitterIter<'a> {
