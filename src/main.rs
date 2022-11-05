@@ -5,6 +5,7 @@ use clap::Parser;
 mod filestream;
 
 mod config;
+use crate::chunksplitter::FileSizer;
 use crate::config::get_config;
 
 mod uploader;

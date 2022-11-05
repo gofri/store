@@ -34,10 +34,13 @@ fn get_file_size(path: &path::Path) -> Result<u64, String> {
     }
 }
 
-impl ChunkSplitter<'_> {
-    pub fn total_size(&self) -> u64 {
+impl super::FileSizer for ChunkSplitter<'_> {
+    fn total_size(&self) -> u64 {
         self.total_size
     }
+}
+
+impl ChunkSplitter<'_> {
     fn is_valid_chunk(&self, chunk_index: u64) -> bool {
         chunk_index * self.chunk_size < self.total_size
     }
