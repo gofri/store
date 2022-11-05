@@ -19,9 +19,8 @@ pub trait ChunkSplitter {
 pub fn new<'a, 'b, T: 'b>(path: &'a path::Path, chunk_size: u64) -> Result<T, String>
 where
     'a: 'b,
-    T: From<default::ChunkSplitter<'b>>,
+    T: ChunkSplitter + From<default::ChunkSplitter<'b>>,
     &'b T: BufReaderIntoIterator<'b>,
-    T: ChunkSplitter,
 {
     Ok(T::from(default::ChunkSplitter::new(path, chunk_size)?))
 }
