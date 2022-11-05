@@ -22,8 +22,5 @@ fn get_builder() -> Result<ConfigBuilder<DefaultState>, ConfigError> {
 }
 
 pub fn get_config() -> Result<Config, ConfigError> {
-    match get_builder() {
-        Ok(c) => c.build(),
-        Err(e) => Err(e),
-    }
+    get_builder()?.build()
 }
