@@ -2,10 +2,7 @@ use std::{path, sync::Arc};
 
 use crate::filestream::{new_chunk_reader, ChunkReader};
 
-pub fn _new<'a, 'b>(
-    path: &'a path::Path,
-    chunk_size: u64,
-) -> Result<super::ChunkSplitter<'b>, String>
+pub fn _new<'a, 'b>(path: &'a path::Path, chunk_size: u64) -> Result<ChunkSplitter<'b>, String>
 where
     'a: 'b,
 {
@@ -14,10 +11,14 @@ where
     }
     let total_size = get_file_size(path)?;
     let chunk_reader = Arc::new(new_chunk_reader(path, chunk_size)?);
-    Ok(super::ChunkSplitter {
+    Ok(ChunkSplitter {
         num_chunks: total_size / chunk_size,
         chunk_reader,
     })
+}
+pub struct ChunkSplitter<'a> {
+    num_chunks: u64,
+    chunk_reader: Arc<dyn ChunkReader + 'a>,
 }
 
 fn get_file_size(path: &path::Path) -> Result<u64, String> {
@@ -31,14 +32,14 @@ fn get_file_size(path: &path::Path) -> Result<u64, String> {
     }
 }
 
-impl super::ChunkSplitter<'_> {
+impl ChunkSplitter<'_> {
     fn is_valid_chunk(&self, chunk_index: u64) -> bool {
         chunk_index <= self.num_chunks
     }
 }
 
-impl<'a> super::BufReaderIntoIterator<'a> for &'a super::ChunkSplitter<'a> {}
-impl<'a> IntoIterator for &'a super::ChunkSplitter<'a> {
+impl<'a> super::BufReaderIntoIterator<'a> for &'a ChunkSplitter<'a> {}
+impl<'a> IntoIterator for &'a ChunkSplitter<'a> {
     type Item = BufReaderIterItem<'a>;
     type IntoIter = super::ChunkSplitterIter<'a>;
 

@@ -1,16 +1,11 @@
-use self::default::{BufReaderIterItem, _new};
-use crate::filestream::ChunkReader;
-use std::{path, sync::Arc};
-mod default;
+use self::default::{BufReaderIterItem, ChunkSplitter, _new};
 
-pub struct ChunkSplitter<'a> {
-    num_chunks: u64,
-    chunk_reader: Arc<dyn ChunkReader + 'a>,
-}
+use std::path;
+mod default;
 
 pub struct ChunkSplitterIter<'a> {
     index: u64,
-    splitter: &'a super::ChunkSplitter<'a>,
+    splitter: &'a ChunkSplitter<'a>,
 }
 
 pub trait BufReader: Send {
@@ -22,9 +17,11 @@ pub trait BufReaderIntoIterator<'a>:
 {
 }
 
-pub fn new<'a, 'b>(path: &'a path::Path, chunk_size: u64) -> Result<ChunkSplitter<'b>, String>
+pub fn new<'a, 'b, T: 'b>(path: &'a path::Path, chunk_size: u64) -> Result<T, String>
 where
     'a: 'b,
+    T: From<ChunkSplitter<'b>>,
+    &'b T: IntoIterator,
 {
-    _new(path, chunk_size)
+    Ok(T::from(_new(path, chunk_size)?))
 }

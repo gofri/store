@@ -1,6 +1,6 @@
 use std::thread;
 
-use chunksplitter::{BufReaderIntoIterator, ChunkSplitter};
+use chunksplitter::BufReaderIntoIterator;
 use clap::Parser;
 
 mod filestream;
