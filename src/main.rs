@@ -24,12 +24,26 @@ struct Cli {
 
 fn run<'a>(splitter: impl BufReaderIntoIterator<'a>) {
     thread::scope(|scope| {
+        let mut children = vec![];
         for (s, i) in splitter.into_iter().zip(0u64..) {
-            scope.spawn(move || {
-                let b = s.read().unwrap();
+            let handler = scope.spawn(move || -> Result<u64, String> {
                 let u = uploader::new(i);
-                println!("uploaded: {:?}", u.upload(b.as_ref()).unwrap());
+                let buf = s.read()?;
+                let yml = u.upload(buf.as_ref())?;
+                println!("uploaded: {:?}", yml);
+                Ok(i)
             });
+            children.push(handler);
+        }
+        for c in children {
+            match c.join().expect("thread panic!") {
+                Ok(i) => {
+                    println!("thread finished: {}", i)
+                }
+                Err(e) => {
+                    println!("thread failed: {}", e)
+                }
+            }
         }
     });
 }

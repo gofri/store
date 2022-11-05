@@ -26,8 +26,7 @@ impl super::ChunkReader for LocalFileChunker<'_> {
         let mut buf = vec![];
         self.open_file_at_index(index)?
             .take(self.chunk_size)
-            .read_to_end(&mut buf)?; // read(chunked_buf)
-
+            .read_to_end(&mut buf)?;
         Ok(buf)
     }
 }
