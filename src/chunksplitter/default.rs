@@ -44,6 +44,12 @@ impl ChunkSplitter<'_> {
     }
 }
 
+impl super::ChunkSplitter for ChunkSplitter<'_> {
+    fn num_chunks(&self) -> u64 {
+        self.num_chunks
+    }
+}
+
 impl<'a> super::BufReaderIntoIterator<'a> for &'a ChunkSplitter<'a> {}
 impl<'a> IntoIterator for &'a ChunkSplitter<'a> {
     type Item = BufReaderIterItem<'a>;

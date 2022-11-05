@@ -1,4 +1,4 @@
-use self::default::{BufReaderIterItem, ChunkSplitter, ChunkSplitterIter};
+use self::default::{BufReaderIterItem, ChunkSplitterIter};
 
 use std::path;
 mod default;
@@ -12,11 +12,16 @@ pub trait BufReaderIntoIterator<'a>:
 {
 }
 
+pub trait ChunkSplitter {
+    fn num_chunks(&self) -> u64;
+}
+
 pub fn new<'a, 'b, T: 'b>(path: &'a path::Path, chunk_size: u64) -> Result<T, String>
 where
     'a: 'b,
-    T: From<ChunkSplitter<'b>>,
+    T: From<default::ChunkSplitter<'b>>,
     &'b T: BufReaderIntoIterator<'b>,
+    T: ChunkSplitter,
 {
     Ok(T::from(default::new(path, chunk_size)?))
 }
