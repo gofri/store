@@ -1,11 +1,12 @@
 use std::thread;
 
-use chunksplitter::ChunkSplitter;
+use chunksplitter::{BufReaderIntoIterator, ChunkSplitter};
 use clap::Parser;
 
 mod filestream;
 
 mod config;
+
 use crate::config::get_config;
 
 mod uploader;
@@ -21,7 +22,7 @@ struct Cli {
     path: std::path::PathBuf,
 }
 
-fn run<'a>(splitter: &'a ChunkSplitter<'a>) {
+fn run<'a>(splitter: impl BufReaderIntoIterator<'a>) {
     thread::scope(|scope| {
         for (s, i) in splitter.into_iter().zip(0u64..) {
             scope.spawn(move || {

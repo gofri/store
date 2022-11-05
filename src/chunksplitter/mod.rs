@@ -4,7 +4,12 @@ mod default;
 
 pub struct ChunkSplitter<'a> {
     num_chunks: u64,
-    pub chunk_reader: Arc<dyn ChunkReader + 'a>, // TODO ugly pub
+    chunk_reader: Arc<dyn ChunkReader + 'a>, // TODO ugly pub
+}
+
+pub struct Helper<'a> {
+    index: u64,
+    splitter: &'a super::ChunkSplitter<'a>,
 }
 
 use crate::filestream::ChunkReader;
@@ -15,8 +20,12 @@ pub trait BufReader: Send {
     fn read(&self) -> Result<Vec<u8>, String>;
 }
 
-type BufReaderIterItem<'a> = Box<dyn BufReader + 'a>;
+pub type BufReaderIterItem<'a> = Box<dyn BufReader + 'a>;
 pub trait BufReaderIter<'a>: Iterator<Item = BufReaderIterItem<'a>> {}
+pub trait BufReaderIntoIterator<'a>:
+    IntoIterator<IntoIter = Helper<'a>, Item = BufReaderIterItem<'a>>
+{
+}
 
 pub fn new<'a, 'b>(path: &'a path::Path, chunk_size: u64) -> Result<ChunkSplitter<'b>, String>
 where

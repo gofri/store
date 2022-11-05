@@ -32,30 +32,25 @@ fn get_file_size(path: &path::Path) -> Result<u64, String> {
 }
 
 impl super::ChunkSplitter<'_> {
-    // TODO hide via trait
-    pub fn is_valid_chunk(&self, chunk_index: u64) -> bool {
+    fn is_valid_chunk(&self, chunk_index: u64) -> bool {
         chunk_index <= self.num_chunks
     }
 }
 
+impl<'a> super::BufReaderIntoIterator<'a> for &'a super::ChunkSplitter<'a> {}
 impl<'a> IntoIterator for &'a super::ChunkSplitter<'a> {
     type Item = super::BufReaderIterItem<'a>;
-    type IntoIter = Helper<'a>;
+    type IntoIter = super::Helper<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
-        Helper {
+        super::Helper {
             index: 0,
             splitter: self,
         }
     }
 }
 
-pub struct Helper<'a> {
-    index: u64,
-    splitter: &'a super::ChunkSplitter<'a>,
-}
-
-impl<'a> Iterator for Helper<'a> {
+impl<'a> Iterator for super::Helper<'a> {
     type Item = super::BufReaderIterItem<'a>;
     fn next(&mut self) -> std::option::Option<<Self as Iterator>::Item> {
         let index = self.index;
