@@ -39,7 +39,7 @@ impl super::ChunkSplitter<'_> {
 
 impl<'a> super::BufReaderIntoIterator<'a> for &'a super::ChunkSplitter<'a> {}
 impl<'a> IntoIterator for &'a super::ChunkSplitter<'a> {
-    type Item = super::BufReaderIterItem<'a>;
+    type Item = BufReaderIterItem<'a>;
     type IntoIter = super::ChunkSplitterIter<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -50,8 +50,10 @@ impl<'a> IntoIterator for &'a super::ChunkSplitter<'a> {
     }
 }
 
+pub type BufReaderIterItem<'a> = Box<dyn super::BufReader + 'a>;
+
 impl<'a> Iterator for super::ChunkSplitterIter<'a> {
-    type Item = super::BufReaderIterItem<'a>;
+    type Item = BufReaderIterItem<'a>;
     fn next(&mut self) -> std::option::Option<<Self as Iterator>::Item> {
         let index = self.index;
         self.index += 1;

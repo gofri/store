@@ -14,13 +14,12 @@ pub struct ChunkSplitterIter<'a> {
 
 use crate::filestream::ChunkReader;
 
-use self::default::_new;
+use self::default::{BufReaderIterItem, _new};
 
 pub trait BufReader: Send {
     fn read(&self) -> Result<Vec<u8>, String>;
 }
 
-pub type BufReaderIterItem<'a> = Box<dyn BufReader + 'a>;
 pub trait BufReaderIntoIterator<'a>:
     IntoIterator<IntoIter = ChunkSplitterIter<'a>, Item = BufReaderIterItem<'a>>
 {
