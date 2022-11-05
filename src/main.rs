@@ -5,7 +5,6 @@ use clap::Parser;
 mod filestream;
 
 mod config;
-use crate::chunksplitter::FileSizer;
 use crate::config::get_config;
 
 mod uploader;
@@ -31,9 +30,8 @@ fn main() {
     let chunk_size = config.unwrap().get_int("chunk_size").unwrap() as u64;
     let splitter = chunksplitter::new(args.path.as_path(), chunk_size).unwrap();
 
-    println!("start reading {} bytes", splitter.total_size());
     thread::scope(|scope| {
-        for (s, i) in splitter.zip(0u64..) {
+        for (s, i) in splitter.into_iter().zip(0u64..) {
             scope.spawn(move || {
                 let b = s.read().unwrap();
                 let u = uploader::new(i);

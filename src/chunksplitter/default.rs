@@ -1,24 +1,23 @@
-use std::{cell::RefCell, path, sync::Arc};
+use std::{path, sync::Arc};
 
 use crate::filestream::{new_chunk_reader, ChunkReader};
 
 pub struct ChunkSplitter<'a> {
-    index: RefCell<u64>,
-    total_size: u64,
-    chunk_size: u64,
-    chunk_reader: Arc<dyn ChunkReader + 'a>,
+    num_chunks: u64,
+    pub chunk_reader: Arc<dyn ChunkReader + 'a>, // TODO ugly pub
 }
 
 pub fn _new<'a, 'b>(path: &'a path::Path, chunk_size: u64) -> Result<ChunkSplitter<'b>, String>
 where
     'a: 'b,
 {
+    if chunk_size == 0 {
+        return Err(String::from("Invalid chunk size (0)"));
+    }
     let total_size = get_file_size(path)?;
     let chunk_reader = Arc::new(new_chunk_reader(path, chunk_size)?);
     Ok(ChunkSplitter {
-        index: RefCell::new(0),
-        total_size,
-        chunk_size,
+        num_chunks: total_size / chunk_size,
         chunk_reader,
     })
 }
@@ -34,38 +33,44 @@ fn get_file_size(path: &path::Path) -> Result<u64, String> {
     }
 }
 
-impl super::FileSizer for ChunkSplitter<'_> {
-    fn total_size(&self) -> u64 {
-        self.total_size
-    }
-}
-
 impl ChunkSplitter<'_> {
-    fn is_valid_chunk(&self, chunk_index: u64) -> bool {
-        chunk_index * self.chunk_size < self.total_size
+    // TODO hide via trait
+    pub fn is_valid_chunk(&self, chunk_index: u64) -> bool {
+        chunk_index <= self.num_chunks
     }
 }
 
-impl<'a> super::BufReaderIter<'a> for ChunkSplitter<'a> {}
-impl<'a> Iterator for ChunkSplitter<'a> {
+impl<'a> IntoIterator for &'a ChunkSplitter<'a> {
     type Item = super::BufReaderIterItem<'a>;
-    fn next(&mut self) -> std::option::Option<<Self as Iterator>::Item> {
-        let index = self.index.replace_with(|old| *old + 1);
-        if self.is_valid_chunk(index) {
-            Some(Box::new(SingleChunkReader {
-                chunk_reader: Arc::clone(&self.chunk_reader),
-                index,
-            }))
-        } else {
-            self.index.replace(0);
-            None
+    type IntoIter = Helper<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        Helper {
+            index: 0,
+            splitter: self,
         }
     }
 }
 
-struct Helper<'a> {
+pub struct Helper<'a> {
     index: u64,
-    chunk_reader: Arc<dyn ChunkReader + 'a>,
+    splitter: &'a ChunkSplitter<'a>,
+}
+
+impl<'a> Iterator for Helper<'a> {
+    type Item = super::BufReaderIterItem<'a>;
+    fn next(&mut self) -> std::option::Option<<Self as Iterator>::Item> {
+        let index = self.index;
+        self.index += 1;
+        if self.splitter.is_valid_chunk(index) {
+            Some(Box::new(SingleChunkReader {
+                chunk_reader: Arc::clone(&self.splitter.chunk_reader),
+                index,
+            }))
+        } else {
+            None
+        }
+    }
 }
 
 struct SingleChunkReader<'a> {
