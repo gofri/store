@@ -23,5 +23,5 @@ where
     &'b T: BufReaderIntoIterator<'b>,
     T: ChunkSplitter,
 {
-    Ok(T::from(default::new(path, chunk_size)?))
+    Ok(T::from(default::ChunkSplitter::new(path, chunk_size)?))
 }
