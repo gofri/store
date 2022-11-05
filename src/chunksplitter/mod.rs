@@ -1,5 +1,6 @@
+use self::default::{BufReaderIterItem, _new};
+use crate::filestream::ChunkReader;
 use std::{path, sync::Arc};
-
 mod default;
 
 pub struct ChunkSplitter<'a> {
@@ -11,10 +12,6 @@ pub struct ChunkSplitterIter<'a> {
     index: u64,
     splitter: &'a super::ChunkSplitter<'a>,
 }
-
-use crate::filestream::ChunkReader;
-
-use self::default::{BufReaderIterItem, _new};
 
 pub trait BufReader: Send {
     fn read(&self) -> Result<Vec<u8>, String>;
