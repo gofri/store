@@ -55,7 +55,7 @@ fn main() {
     println!("got args: {}", args.path.display());
 
     let config = get_config();
-    let chunk_size = config.unwrap().get_int("chunk_size").unwrap() as u64;
+    let chunk_size = config.unwrap().get_int("default_chunk_size").unwrap() as u64;
     let splitter = chunksplitter::new(args.path.as_path(), chunk_size).unwrap();
     run(&splitter);
 }
