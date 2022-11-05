@@ -5,7 +5,7 @@ mod default;
 use self::default::new_default_chunk_splitter;
 
 pub trait BufReader: Send {
-    fn read(&self) -> Result<bytes::Bytes, String>;
+    fn read(&self) -> Result<Vec<u8>, String>;
 }
 
 type BufReaderIterItem<'a> = Box<dyn BufReader + 'a>;

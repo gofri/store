@@ -74,12 +74,12 @@ struct SingleChunkReader<'a> {
 }
 
 impl super::BufReader for SingleChunkReader<'_> {
-    fn read(&self) -> Result<bytes::Bytes, String> {
+    fn read(&self) -> Result<Vec<u8>, String> {
         let mut buf = vec![0u8; self.chunk_size as usize];
         match self.chunk_reader.read_chunk(self.index, &mut buf) {
             Ok(read_bytes) => {
                 buf.truncate(read_bytes);
-                Ok(bytes::Bytes::from(buf))
+                Ok(buf)
             }
             Err(e) => Err(std::fmt::format(format_args!(
                 "failed to read chunk: {}",
