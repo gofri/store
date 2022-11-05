@@ -2,7 +2,7 @@ use std::{path, sync::Arc};
 
 use crate::filestream::{new_chunk_reader, ChunkReader};
 
-pub fn _new<'a, 'b>(path: &'a path::Path, chunk_size: u64) -> Result<ChunkSplitter<'b>, String>
+pub fn new<'a, 'b>(path: &'a path::Path, chunk_size: u64) -> Result<ChunkSplitter<'b>, String>
 where
     'a: 'b,
 {

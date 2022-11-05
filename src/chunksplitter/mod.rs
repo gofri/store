@@ -1,4 +1,4 @@
-use self::default::{BufReaderIterItem, ChunkSplitter, ChunkSplitterIter, _new};
+use self::default::{BufReaderIterItem, ChunkSplitter, ChunkSplitterIter};
 
 use std::path;
 mod default;
@@ -18,5 +18,5 @@ where
     T: From<ChunkSplitter<'b>>,
     &'b T: BufReaderIntoIterator<'b>,
 {
-    Ok(T::from(_new(path, chunk_size)?))
+    Ok(T::from(default::new(path, chunk_size)?))
 }
