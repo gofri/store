@@ -7,7 +7,7 @@ pub struct ChunkSplitter<'a> {
     chunk_reader: Arc<dyn ChunkReader + 'a>, // TODO ugly pub
 }
 
-pub struct Helper<'a> {
+pub struct ChunkSplitterIter<'a> {
     index: u64,
     splitter: &'a super::ChunkSplitter<'a>,
 }
@@ -21,9 +21,8 @@ pub trait BufReader: Send {
 }
 
 pub type BufReaderIterItem<'a> = Box<dyn BufReader + 'a>;
-pub trait BufReaderIter<'a>: Iterator<Item = BufReaderIterItem<'a>> {}
 pub trait BufReaderIntoIterator<'a>:
-    IntoIterator<IntoIter = Helper<'a>, Item = BufReaderIterItem<'a>>
+    IntoIterator<IntoIter = ChunkSplitterIter<'a>, Item = BufReaderIterItem<'a>>
 {
 }
 
