@@ -26,9 +26,13 @@ impl LocalFileChunker<'_> {
 }
 
 impl super::ChunkReader for LocalFileChunker<'_> {
-    fn read_chunk(&self, index: u64, buf: &mut [u8]) -> StdResult<usize> {
-        let chunked_buf = &mut buf[0..self.chunk_size as usize];
-        self.open_file_at_index(index)?.read(chunked_buf)
+    fn read_chunk(&self, index: u64) -> Result<Vec<u8>, std::io::Error> {
+        let mut buf = vec![];
+        self.open_file_at_index(index)?
+            .take(self.chunk_size)
+            .read_to_end(&mut buf)?; // read(chunked_buf)
+
+        Ok(buf)
     }
 }
 

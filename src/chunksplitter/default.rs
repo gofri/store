@@ -58,7 +58,6 @@ impl<'a> Iterator for DefaultChunkSplitter<'a> {
             Some(Box::new(SingleChunkReader {
                 chunk_reader: Arc::clone(&self.chunk_reader),
                 index,
-                chunk_size: self.chunk_size,
             }))
         } else {
             self.index.replace(0);
@@ -69,18 +68,13 @@ impl<'a> Iterator for DefaultChunkSplitter<'a> {
 
 struct SingleChunkReader<'a> {
     index: u64,
-    chunk_size: u64,
     chunk_reader: Arc<dyn ChunkReader + 'a>,
 }
 
 impl super::BufReader for SingleChunkReader<'_> {
     fn read(&self) -> Result<Vec<u8>, String> {
-        let mut buf = vec![0u8; self.chunk_size as usize];
-        match self.chunk_reader.read_chunk(self.index, &mut buf) {
-            Ok(read_bytes) => {
-                buf.truncate(read_bytes);
-                Ok(buf)
-            }
+        match self.chunk_reader.read_chunk(self.index) {
+            Ok(buf) => Ok(buf),
             Err(e) => Err(std::fmt::format(format_args!(
                 "failed to read chunk: {}",
                 e
