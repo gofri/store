@@ -24,3 +24,7 @@ where
 {
     Ok(T::from(default::ChunkSplitter::new(path, chunk_size)?))
 }
+
+pub trait ChunkSizeDictator {
+    fn adjust_size(current_size: u64) -> Result<u64, String>;
+}

@@ -6,6 +6,7 @@ use clap::Parser;
 mod filestream;
 
 mod config;
+mod encdec;
 
 use crate::config::get_config;
 
@@ -13,6 +14,7 @@ mod uploader;
 
 mod chunksplitter;
 
+use crate::encdec::EncDec;
 use crate::uploader::ChunkUploader;
 
 /// Search for a pattern in a file and display the lines that contain it.
@@ -55,6 +57,20 @@ fn main() {
 
     let args = Cli::parse();
     println!("got args: {}", args.path.display());
+
+    let key = b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    let c = encdec::new(key).unwrap();
+    let mut buffer: Vec<u8> = vec![0; 16];
+    buffer.extend_from_slice(b"super cool");
+    c.enc(&mut buffer).unwrap();
+    println!("my cipher: {:?}", buffer);
+    match c.dec(&mut buffer) {
+        Ok(_) => {}
+        Err(e) => {
+            println!("failed! {}", e)
+        }
+    }
+    println!("my plain: {:?}", buffer);
 
     let config = get_config();
     let chunk_size = config.unwrap().get_int("default_chunk_size").unwrap() as u64;
