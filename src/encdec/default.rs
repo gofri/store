@@ -9,7 +9,7 @@ use crate::chunksplitter;
 // As per the aes-gcm-siv crate documentation, the auth-tag takes extra 16 bytes
 const ENCRYPTION_OVERHEAD: u64 = 16;
 
-// The constant nonce we will be using for all encryption operations.
+// The constant nonce we will be used for all encryption operations.
 // Using aes-gcm-siv, repeating nonce means that we get the same cipher for the same plain.
 // This is not a problem for this use case.
 // Actually, it would allow git to reduce the repo size in such cases.
@@ -17,7 +17,14 @@ const ENCRYPTION_OVERHEAD: u64 = 16;
 // which would just complicate things too much without real benefit.
 const NONCE: &[u8; 12] = b"123456789012";
 
-const ASSOCIATED_DATA: &[u8; 0] = b"";
+// Associated data explained: https://security.stackexchange.com/a/179279
+// In principle, we could use a non-constant associated data.
+// This couldn't be e.g. file/path, because that would complicate operations on the metadata.
+// We could use e.g. [digest(whole-file) x chunk-index] as the associated data,
+// but that would mean:
+// 1. Important: We need to calculate digest for the whole file before cutting to chunk (slowing).
+// 2. Less important: git won't be able to save space by incidental de-dup.
+const ASSOCIATED_DATA: &[u8] = b"simple-store";
 
 pub fn new(key: &[u8]) -> Result<AesGcmSivWrapper, String> {
     let cipher = Aes256GcmSiv::new_from_slice(key).map_err(|e| e.to_string())?;
